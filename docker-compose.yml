@@ -49,6 +49,36 @@ services:
       retries: 3
       start_period: 60s
 
+  broker:
+    image: confluentinc/confluent-local:7.9.0
+    environment:
+      # 클라이언트가 연결할 주소 정보. 컨테이너 간: broker:29092, 외부: 0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://0.0.0.0:9092'
+      # KRaft 모드 컨트롤러 설정. broker:29093이 컨트롤러 역할(메타 데이터 관리함)
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
+      # 실제 바인딩할 리스너들. 29092(내부), 29093(컨트롤러), 9092(외부)
+      KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+    ports:
+      - "9092:9092"
+    networks:
+      - app-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    ports:
+      - "8989:8080"
+    restart: always
+    environment:
+      - DYNAMIC_CONFIG_ENABLED=true
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=broker:29092
+    volumes:
+      - ./kafka:/var/lib/kafka/data
+    depends_on:
+      - broker
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
