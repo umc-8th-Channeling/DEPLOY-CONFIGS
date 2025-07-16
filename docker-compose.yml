@@ -39,6 +39,7 @@ services:
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      KAFKA_BOOTSTRAP_SERVERS: broker:29092
     networks:
       - app-network
     restart: unless-stopped
@@ -48,12 +49,33 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    depends_on:
+      - broker
+
+  kafka-consumer:
+    image: hadoroke/channeling-llm:latest
+    container_name: kafka-consumer
+    command: python kafka_consumer.py
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+
+      # Kafka 관련
+      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - broker
 
   broker:
     image: confluentinc/confluent-local:7.9.0
     environment:
-      # 클라이언트가 연결할 주소 정보. 컨테이너 간: broker:29092, 외부: 0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://0.0.0.0:9092'
+      # 클라이언트가 연결할 주소 정보. 컨테이너 간: broker:29092, 외부: localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
       # KRaft 모드 컨트롤러 설정. broker:29093이 컨트롤러 역할(메타 데이터 관리함)
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
       # 실제 바인딩할 리스너들. 29092(내부), 29093(컨트롤러), 9092(외부)
