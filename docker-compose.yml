@@ -73,6 +73,7 @@ services:
 
   broker:
     image: confluentinc/confluent-local:7.9.0
+    container_name: broker
     environment:
       # 클라이언트가 연결할 주소 정보. 컨테이너 간: broker:29092, 외부: localhost:9092
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
@@ -87,6 +88,7 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui
+    container_name: kafka-ui
     ports:
       - "8989:8080"
     restart: always
@@ -100,6 +102,20 @@ services:
       - broker
     networks:
       - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   app-network:
