@@ -19,6 +19,9 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
       JWT_SECRET: ${JWT_SECRET}
       REDIS_HOST: ${REDIS_HOST}
+      SPRING_PROFILES_ACTIVE: "db,s3,oauth,jwt,prod"
+    volumes:
+      - ./logs:/app/logs
     networks:
       - app-network
     restart: unless-stopped
@@ -121,6 +124,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+  
+  
 
 networks:
   app-network:
