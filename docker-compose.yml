@@ -6,6 +6,7 @@ services:
     container_name: spring-app
     ports:
       - "8080:8080"
+    user: "1000:1000"
     environment:
       SPRING_DATASOURCE_URL: "jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
