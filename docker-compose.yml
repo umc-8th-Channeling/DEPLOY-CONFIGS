@@ -8,16 +8,23 @@ services:
       - "8080:8080"
     user: "1000:1000"
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}"
+      # MySQL
+      SPRING_DATASOURCE_URL: "jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}"
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+
+      # S3
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
       AWS_REGION: ${AWS_REGION}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+
+      # Google OAuth
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+
+      # Others
       JWT_SECRET: ${JWT_SECRET}
       REDIS_HOST: ${REDIS_HOST}
       SPRING_PROFILES_ACTIVE: "db,s3,oauth,jwt,prod"
@@ -39,15 +46,25 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      # MySQL
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      
+      # PostgreSQL
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      PG_DATABASE: ${PG_DATABASE}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      
+      # API Keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SERPAPI_KEY: ${SERPAPI_KEY}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+      
       KAFKA_BOOTSTRAP_SERVERS: broker:29092
     networks:
       - app-network
@@ -66,11 +83,24 @@ services:
     container_name: kafka-consumer
     command: python kafka_consumer.py
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
+      # MySQL
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      
+      # PostgreSQL
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      PG_DATABASE: ${PG_DATABASE}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      
+      # API Keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SERPAPI_KEY: ${SERPAPI_KEY}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
 
       # Kafka 관련
       KAFKA_BOOTSTRAP_SERVERS: broker:29092
