@@ -28,6 +28,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       REDIS_HOST: ${REDIS_HOST}
       SPRING_PROFILES_ACTIVE: "db,s3,oauth,jwt,prod"
+      FASTAPI_URL: "http://fastapi-app:8000"
     volumes:
       - ./logs:/app/logs
     networks:
