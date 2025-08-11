@@ -66,6 +66,10 @@ services:
       SERPAPI_KEY: ${SERPAPI_KEY}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
       
+      # Webshare Proxy
+      PROXY_USERNAME: ${PROXY_USERNAME}
+      PROXY_PASSWORD: ${PROXY_PASSWORD}
+
       KAFKA_BOOTSTRAP_SERVERS: broker:29092
     networks:
       - app-network
@@ -102,6 +106,10 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SERPAPI_KEY: ${SERPAPI_KEY}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+
+      # Webshare Proxy
+      PROXY_USERNAME: ${PROXY_USERNAME}
+      PROXY_PASSWORD: ${PROXY_PASSWORD}
 
       # Kafka 관련
       KAFKA_BOOTSTRAP_SERVERS: broker:29092
