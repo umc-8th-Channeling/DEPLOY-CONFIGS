@@ -1,5 +1,42 @@
 # deploy-configs
 
+이 저장소는 Channeling 프로젝트의 전체 서비스 배포 구성을 관리합니다.
+
+## 🚀 배포 서비스 구성
+
+### Docker Compose로 관리되는 서비스들:
+
+1. **Spring Boot Backend (spring-app)**
+   - 포트: 8080
+   - 이미지: [dockerhub-user]/channeling-be:latest
+   - MySQL, Redis, S3, Google OAuth 연동
+
+2. **FastAPI LLM Service (fastapi-app)**
+   - 포트: 8000
+   - 이미지: [dockerhub-user]/channeling-llm:latest
+   - OpenAI, SerpAPI, YouTube API 통합
+   - MySQL, PostgreSQL 데이터베이스 연동
+
+3. **Kafka Consumer Service**
+   - Kafka 메시지 처리 전용 서비스
+   - FastAPI와 동일한 이미지 사용
+
+4. **Apache Kafka (broker)**
+   - 포트: 9092
+   - 이벤트 스트리밍 플랫폼
+   - KRaft 모드로 실행
+
+5. **Kafka UI**
+   - 포트: 8989
+   - Kafka 클러스터 모니터링 대시보드
+
+6. **Redis Cache**
+   - 포트: 6379
+   - 세션 및 캐시 저장소
+
+### 추가 도구:
+- **Gemini AI PR 자동 리뷰 시스템** (scripts/gemini_review.py)
+
 # 🤖 Gemini AI PR 자동 리뷰 시스템
 
 GitHub Pull Request에 대한 자동 코드 리뷰를 제공하는 Gemini AI 기반 시스템입니다.
