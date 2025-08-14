@@ -29,6 +29,7 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       SPRING_PROFILES_ACTIVE: "db,s3,oauth,jwt,prod"
       FASTAPI_URL: "http://fastapi-app:8000"
+      FRONT_URL: "https://channeling.vercel.app/"
     volumes:
       - ./logs:/app/logs
     networks:
