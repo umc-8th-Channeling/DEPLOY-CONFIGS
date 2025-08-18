@@ -9,7 +9,7 @@ services:
     user: "1000:1000"
     environment:
       # MySQL
-      SPRING_DATASOURCE_URL: "jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul"
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
 
@@ -54,19 +54,19 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      
+
       # PostgreSQL
       PG_HOST: ${PG_HOST}
       PG_PORT: ${PG_PORT}
       PG_DATABASE: ${PG_DATABASE}
       PG_USER: ${PG_USER}
       PG_PASSWORD: ${PG_PASSWORD}
-      
+
       # API Keys
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SERPAPI_KEY: ${SERPAPI_KEY}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-      
+
       # Webshare Proxy
       PROXY_USERNAME: ${PROXY_USERNAME}
       PROXY_PASSWORD: ${PROXY_PASSWORD}
@@ -95,14 +95,14 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      
+
       # PostgreSQL
       PG_HOST: ${PG_HOST}
       PG_PORT: ${PG_PORT}
       PG_DATABASE: ${PG_DATABASE}
       PG_USER: ${PG_USER}
       PG_PASSWORD: ${PG_PASSWORD}
-      
+
       # API Keys
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       SERPAPI_KEY: ${SERPAPI_KEY}
@@ -165,8 +165,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-  
-  
 
 networks:
   app-network:
