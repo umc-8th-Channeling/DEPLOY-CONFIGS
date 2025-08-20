@@ -9,6 +9,7 @@ services:
     user: "1000:1000"
     environment:
       # MySQL
+
       SPRING_DATASOURCE_URL: "jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul"
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
@@ -48,6 +49,8 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Timezone
+      TZ: Asia/Seoul
       # MySQL
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
@@ -84,11 +87,89 @@ services:
     depends_on:
       - broker
 
-  kafka-consumer:
+  overview-consumer:
     image: hadoroke/channeling-llm:latest
-    container_name: kafka-consumer
-    command: python kafka_consumer.py
+    container_name: overview-consumer
+    command: python kafka_overview_consumer.py
     environment:
+      # Timezone
+      TZ: Asia/Seoul
+      # MySQL
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+      # PostgreSQL
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      PG_DATABASE: ${PG_DATABASE}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+
+      # API Keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SERPAPI_KEY: ${SERPAPI_KEY}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+
+      # Webshare Proxy
+      PROXY_USERNAME: ${PROXY_USERNAME}
+      PROXY_PASSWORD: ${PROXY_PASSWORD}
+
+      # Kafka 관련
+      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - broker
+  
+  analysis-consumer:
+    image: hadoroke/channeling-llm:latest
+    container_name: analysis-consumer
+    command: python kafka_analysis_consumer.py
+    environment:
+      # Timezone
+      TZ: Asia/Seoul
+      # MySQL
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+      # PostgreSQL
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      PG_DATABASE: ${PG_DATABASE}
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+
+      # API Keys
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      SERPAPI_KEY: ${SERPAPI_KEY}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+
+      # Webshare Proxy
+      PROXY_USERNAME: ${PROXY_USERNAME}
+      PROXY_PASSWORD: ${PROXY_PASSWORD}
+
+      # Kafka 관련
+      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - broker
+  
+  idea-consumer:
+    image: hadoroke/channeling-llm:latest
+    container_name: idea-consumer
+    command: python kafka_idea_consumer.py
+    environment:
+      # Timezone
+      TZ: Asia/Seoul
       # MySQL
       MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PORT: ${MYSQL_PORT}
