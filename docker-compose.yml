@@ -1,5 +1,29 @@
 version: '3.8'
 
+x-llm-env: &llm-env
+  TZ: Asia/Seoul
+  # MySQL
+  MYSQL_HOST: ${MYSQL_HOST}
+  MYSQL_PORT: ${MYSQL_PORT}
+  MYSQL_DATABASE: ${MYSQL_DATABASE}
+  MYSQL_USER: ${MYSQL_USER}
+  MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  # PostgreSQL
+  PG_HOST: ${PG_HOST}
+  PG_PORT: ${PG_PORT}
+  PG_DATABASE: ${PG_DATABASE}
+  PG_USER: ${PG_USER}
+  PG_PASSWORD: ${PG_PASSWORD}
+  # API Keys
+  OPENAI_API_KEY: ${OPENAI_API_KEY}
+  SERPAPI_KEY: ${SERPAPI_KEY}
+  YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
+  # Webshare Proxy
+  PROXY_USERNAME: ${PROXY_USERNAME}
+  PROXY_PASSWORD: ${PROXY_PASSWORD}
+  # Kafka
+  KAFKA_BOOTSTRAP_SERVERS: broker:29092
+
 services:
   spring-app:
     image: hadoroke/channeling-be:latest
@@ -49,32 +73,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # Timezone
-      TZ: Asia/Seoul
-      # MySQL
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
-      # PostgreSQL
-      PG_HOST: ${PG_HOST}
-      PG_PORT: ${PG_PORT}
-      PG_DATABASE: ${PG_DATABASE}
-      PG_USER: ${PG_USER}
-      PG_PASSWORD: ${PG_PASSWORD}
-
-      # API Keys
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      SERPAPI_KEY: ${SERPAPI_KEY}
-      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-
-      # Webshare Proxy
-      PROXY_USERNAME: ${PROXY_USERNAME}
-      PROXY_PASSWORD: ${PROXY_PASSWORD}
-
-      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+      <<: *llm-env
     networks:
       - app-network
     restart: unless-stopped
@@ -92,33 +91,7 @@ services:
     container_name: overview-consumer
     command: python kafka_overview_consumer.py
     environment:
-      # Timezone
-      TZ: Asia/Seoul
-      # MySQL
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
-      # PostgreSQL
-      PG_HOST: ${PG_HOST}
-      PG_PORT: ${PG_PORT}
-      PG_DATABASE: ${PG_DATABASE}
-      PG_USER: ${PG_USER}
-      PG_PASSWORD: ${PG_PASSWORD}
-
-      # API Keys
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      SERPAPI_KEY: ${SERPAPI_KEY}
-      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-
-      # Webshare Proxy
-      PROXY_USERNAME: ${PROXY_USERNAME}
-      PROXY_PASSWORD: ${PROXY_PASSWORD}
-
-      # Kafka 관련
-      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+      <<: *llm-env
     networks:
       - app-network
     restart: unless-stopped
@@ -130,33 +103,7 @@ services:
     container_name: analysis-consumer
     command: python kafka_analysis_consumer.py
     environment:
-      # Timezone
-      TZ: Asia/Seoul
-      # MySQL
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
-      # PostgreSQL
-      PG_HOST: ${PG_HOST}
-      PG_PORT: ${PG_PORT}
-      PG_DATABASE: ${PG_DATABASE}
-      PG_USER: ${PG_USER}
-      PG_PASSWORD: ${PG_PASSWORD}
-
-      # API Keys
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      SERPAPI_KEY: ${SERPAPI_KEY}
-      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-
-      # Webshare Proxy
-      PROXY_USERNAME: ${PROXY_USERNAME}
-      PROXY_PASSWORD: ${PROXY_PASSWORD}
-
-      # Kafka 관련
-      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+      <<: *llm-env
     networks:
       - app-network
     restart: unless-stopped
@@ -168,33 +115,7 @@ services:
     container_name: idea-consumer
     command: python kafka_idea_consumer.py
     environment:
-      # Timezone
-      TZ: Asia/Seoul
-      # MySQL
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_PORT: ${MYSQL_PORT}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-
-      # PostgreSQL
-      PG_HOST: ${PG_HOST}
-      PG_PORT: ${PG_PORT}
-      PG_DATABASE: ${PG_DATABASE}
-      PG_USER: ${PG_USER}
-      PG_PASSWORD: ${PG_PASSWORD}
-
-      # API Keys
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      SERPAPI_KEY: ${SERPAPI_KEY}
-      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY}
-
-      # Webshare Proxy
-      PROXY_USERNAME: ${PROXY_USERNAME}
-      PROXY_PASSWORD: ${PROXY_PASSWORD}
-
-      # Kafka 관련
-      KAFKA_BOOTSTRAP_SERVERS: broker:29092
+      <<: *llm-env
     networks:
       - app-network
     restart: unless-stopped
