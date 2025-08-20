@@ -174,8 +174,42 @@ Please provide a thorough code review following this structure:
     def get_gemini_review(self, prompt: str) -> str:
         """Gemini API를 통해 코드 리뷰 받기"""
         try:
-            response = self.model.generate_content(prompt)
-            return response.text
+            # 안전성 설정 조정
+            safety_settings = [
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
+            ]
+            
+            response = self.model.generate_content(
+                prompt,
+                safety_settings=safety_settings
+            )
+            
+            # 응답 검증
+            if not response.candidates:
+                return "❌ Gemini가 응답을 생성하지 못했습니다 (빈 응답)"
+            
+            candidate = response.candidates[0]
+            
+            # finish_reason 확인
+            if hasattr(candidate, 'finish_reason'):
+                if candidate.finish_reason == 1:  # SAFETY
+                    return "❌ Gemini 안전성 필터에 의해 차단되었습니다"
+                elif candidate.finish_reason == 2:  # MAX_TOKENS
+                    return "❌ 토큰 한도 초과"
+                elif candidate.finish_reason == 3:  # STOP
+                    pass  # 정상 종료
+                elif candidate.finish_reason != 0:  # 기타 오류
+                    return f"❌ Gemini 응답 생성 실패 (finish_reason: {candidate.finish_reason})"
+            
+            # 텍스트 파트 확인
+            if not candidate.content or not candidate.content.parts:
+                return "❌ Gemini 응답에 텍스트가 없습니다"
+            
+            return candidate.content.parts[0].text
+            
         except Exception as e:
             return f"❌ Gemini API 호출 실패: {str(e)}"
     
