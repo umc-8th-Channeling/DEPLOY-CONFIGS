@@ -215,27 +215,29 @@ Please provide a thorough code review following this structure:
                     finish_reason = candidate.finish_reason
                     print(f"📊 finish_reason: {finish_reason}")
                     
-                    # finish_reason 상세 분석
+                    # finish_reason 상세 분석 (Gemini 공식 문서 기준)
                     reason_map = {
                         0: "FINISH_REASON_UNSPECIFIED",
-                        1: "STOP (정상)",
-                        2: "MAX_TOKENS",
-                        3: "SAFETY",
-                        4: "RECITATION",
-                        5: "OTHER"
+                        1: "SAFETY (안전성 차단)",
+                        2: "MAX_TOKENS (토큰 한도)",
+                        3: "STOP (정상 완료)",
+                        4: "RECITATION (저작권)",
+                        5: "OTHER (기타)"
                     }
                     
-                    if finish_reason == 1:  # STOP (정상)
+                    if finish_reason == 3:  # STOP (정상)
                         pass
-                    elif finish_reason == 3:  # SAFETY
+                    elif finish_reason == 1:  # SAFETY
                         if hasattr(candidate, 'safety_ratings'):
                             print(f"⚠️ 안전성 등급: {candidate.safety_ratings}")
-                        error_msg = "안전성 필터 차단"
+                        # 안전성 차단인 경우 프롬프트 수정 시도
                         if attempt < max_retries - 1:
-                            print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}, 재시도...")
+                            print(f"⚠️ 시도 {attempt + 1} 안전성 차단, 프롬프트 간소화 후 재시도...")
+                            # 프롬프트를 더 간단하게 수정
+                            prompt = prompt[:len(prompt)//2] + "\n\n간단한 코드 리뷰를 한국어로 작성해주세요."
                             time.sleep(2 ** attempt)
                             continue
-                        return f"❌ Gemini {error_msg}"
+                        return f"❌ Gemini 안전성 필터에 의해 차단됨"
                     elif finish_reason == 2:  # MAX_TOKENS
                         return "⚠️ 토큰 한도 초과 (부분 응답 가능)"
                     elif finish_reason != 0:
@@ -246,10 +248,11 @@ Please provide a thorough code review following this structure:
                             continue
                         return f"❌ Gemini 응답 실패: {error_msg}"
                 
-                # 텍스트 파트 확인
+                # 텍스트 파트 확인 및 디버깅
                 if not candidate.content:
                     error_msg = "content 없음"
                     print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}")
+                    print(f"🔍 candidate 전체: {candidate}")
                     if attempt < max_retries - 1:
                         time.sleep(2 ** attempt)
                         continue
@@ -258,10 +261,15 @@ Please provide a thorough code review following this structure:
                 if not candidate.content.parts:
                     error_msg = "parts 없음"
                     print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}")
+                    print(f"🔍 content 내용: {candidate.content}")
+                    print(f"🔍 content 타입: {type(candidate.content)}")
+                    # parts가 없으면 안전성 차단일 가능성이 높음
+                    if finish_reason == 1:
+                        print("💡 안전성 차단으로 인해 텍스트가 생성되지 않음")
                     if attempt < max_retries - 1:
                         time.sleep(2 ** attempt)
                         continue
-                    return f"❌ Gemini 응답에 텍스트 파트가 없습니다"
+                    return f"❌ Gemini 응답에 텍스트가 없습니다 (안전성 차단 가능성)"
                 
                 # 텍스트 추출
                 text = candidate.content.parts[0].text
