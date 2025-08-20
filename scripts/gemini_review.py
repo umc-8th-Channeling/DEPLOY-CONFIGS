@@ -171,47 +171,136 @@ Please provide a thorough code review following this structure:
         
         return prompt
     
-    def get_gemini_review(self, prompt: str) -> str:
-        """Gemini API를 통해 코드 리뷰 받기"""
-        try:
-            # 안전성 설정 조정
-            safety_settings = [
-                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
-            ]
-            
-            response = self.model.generate_content(
-                prompt,
-                safety_settings=safety_settings
-            )
-            
-            # 응답 검증
-            if not response.candidates:
-                return "❌ Gemini가 응답을 생성하지 못했습니다 (빈 응답)"
-            
-            candidate = response.candidates[0]
-            
-            # finish_reason 확인
-            if hasattr(candidate, 'finish_reason'):
-                if candidate.finish_reason == 1:  # SAFETY
-                    return "❌ Gemini 안전성 필터에 의해 차단되었습니다"
-                elif candidate.finish_reason == 2:  # MAX_TOKENS
-                    return "❌ 토큰 한도 초과"
-                elif candidate.finish_reason == 3:  # STOP
-                    pass  # 정상 종료
-                elif candidate.finish_reason != 0:  # 기타 오류
-                    return f"❌ Gemini 응답 생성 실패 (finish_reason: {candidate.finish_reason})"
-            
-            # 텍스트 파트 확인
-            if not candidate.content or not candidate.content.parts:
-                return "❌ Gemini 응답에 텍스트가 없습니다"
-            
-            return candidate.content.parts[0].text
-            
-        except Exception as e:
-            return f"❌ Gemini API 호출 실패: {str(e)}"
+    def get_gemini_review(self, prompt: str, max_retries: int = 3) -> str:
+        """Gemini API를 통해 코드 리뷰 받기 (재시도 로직 포함)"""
+        for attempt in range(max_retries):
+            try:
+                print(f"🔄 Gemini API 호출 시도 {attempt + 1}/{max_retries}...")
+                
+                # 안전성 설정 조정
+                safety_settings = [
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
+                ]
+                
+                # 생성 설정 추가
+                generation_config = {
+                    "temperature": 0.7,
+                    "max_output_tokens": 4096,
+                    "top_p": 0.95,
+                    "top_k": 40
+                }
+                
+                response = self.model.generate_content(
+                    prompt,
+                    safety_settings=safety_settings,
+                    generation_config=generation_config
+                )
+                
+                # 응답 검증
+                if not response.candidates:
+                    error_msg = "빈 응답 (candidates 없음)"
+                    print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)  # 지수 백오프
+                        continue
+                    return f"❌ Gemini가 응답을 생성하지 못했습니다: {error_msg}"
+                
+                candidate = response.candidates[0]
+                
+                # finish_reason 상세 확인
+                if hasattr(candidate, 'finish_reason'):
+                    finish_reason = candidate.finish_reason
+                    print(f"📊 finish_reason: {finish_reason}")
+                    
+                    # finish_reason 상세 분석
+                    reason_map = {
+                        0: "FINISH_REASON_UNSPECIFIED",
+                        1: "STOP (정상)",
+                        2: "MAX_TOKENS",
+                        3: "SAFETY",
+                        4: "RECITATION",
+                        5: "OTHER"
+                    }
+                    
+                    if finish_reason == 1:  # STOP (정상)
+                        pass
+                    elif finish_reason == 3:  # SAFETY
+                        if hasattr(candidate, 'safety_ratings'):
+                            print(f"⚠️ 안전성 등급: {candidate.safety_ratings}")
+                        error_msg = "안전성 필터 차단"
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}, 재시도...")
+                            time.sleep(2 ** attempt)
+                            continue
+                        return f"❌ Gemini {error_msg}"
+                    elif finish_reason == 2:  # MAX_TOKENS
+                        return "⚠️ 토큰 한도 초과 (부분 응답 가능)"
+                    elif finish_reason != 0:
+                        error_msg = f"비정상 종료 ({reason_map.get(finish_reason, f'알 수 없음: {finish_reason}')})"
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}, 재시도...")
+                            time.sleep(2 ** attempt)
+                            continue
+                        return f"❌ Gemini 응답 실패: {error_msg}"
+                
+                # 텍스트 파트 확인
+                if not candidate.content:
+                    error_msg = "content 없음"
+                    print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)
+                        continue
+                    return f"❌ Gemini 응답에 콘텐츠가 없습니다"
+                
+                if not candidate.content.parts:
+                    error_msg = "parts 없음"
+                    print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)
+                        continue
+                    return f"❌ Gemini 응답에 텍스트 파트가 없습니다"
+                
+                # 텍스트 추출
+                text = candidate.content.parts[0].text
+                if not text:
+                    error_msg = "텍스트가 비어있음"
+                    print(f"⚠️ 시도 {attempt + 1} 실패: {error_msg}")
+                    if attempt < max_retries - 1:
+                        time.sleep(2 ** attempt)
+                        continue
+                    return f"❌ Gemini 응답 텍스트가 비어있습니다"
+                
+                print(f"✅ Gemini API 호출 성공!")
+                return text
+                
+            except Exception as e:
+                error_msg = str(e)
+                print(f"⚠️ 시도 {attempt + 1} 예외 발생: {error_msg}")
+                
+                # API 키 문제인지 확인
+                if "API key" in error_msg or "Invalid" in error_msg:
+                    return f"❌ Gemini API 키 오류: {error_msg}"
+                
+                # Rate limit 확인
+                if "quota" in error_msg.lower() or "rate" in error_msg.lower():
+                    wait_time = min(60, 10 * (attempt + 1))
+                    print(f"⏳ Rate limit 감지, {wait_time}초 대기...")
+                    time.sleep(wait_time)
+                    continue
+                
+                # 마지막 시도가 아니면 재시도
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt
+                    print(f"⏳ {wait_time}초 후 재시도...")
+                    time.sleep(wait_time)
+                    continue
+                    
+                return f"❌ Gemini API 호출 실패 ({max_retries}회 시도): {error_msg}"
+        
+        return "❌ Gemini API 호출 실패: 최대 재시도 횟수 초과"
     
     def post_review_comment(self, review_content: str):
         """PR에 리뷰 코멘트 게시"""
@@ -255,6 +344,15 @@ Please provide a thorough code review following this structure:
             
             print("🤖 Gemini에게 리뷰를 요청하는 중...")
             prompt = self.create_review_prompt(pr_info)
+            
+            # 프롬프트 길이 확인
+            print(f"📏 프롬프트 길이: {len(prompt)} 문자")
+            if len(prompt) > 30000:
+                print("⚠️ 프롬프트가 너무 깁니다. 일부 파일을 제외하고 재시도...")
+                # 큰 파일들을 제외하고 재시도
+                pr_info['files_changed'] = pr_info['files_changed'][:10]
+                prompt = self.create_review_prompt(pr_info)
+            
             review = self.get_gemini_review(prompt)
             
             print("📝 PR에 리뷰를 게시하는 중...")
